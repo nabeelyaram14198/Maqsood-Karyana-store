@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#176b45">
+  <meta name="description" content="Daily grocery purchase and payment register">
+  <title>Maqsood Karyana Store</title>
+  <link rel="manifest" href="manifest.webmanifest?v=1">
+  <link rel="icon" href="app-icon-192.png?v=1">
+  <link rel="apple-touch-icon" href="app-icon-192.png?v=1">
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <main id="loginScreen" class="login-screen">
+    <section class="login-brand">
+      <img src="app-icon-192.png" alt="Maqsood Karyana Store logo">
+      <p class="eyebrow">Daily household register</p>
+      <h1>Maqsood Karyana Store</h1>
+      <p>Ghar ke rozana saman aur payment ka asan record</p>
+    </section>
+    <form id="loginForm" class="login-card">
+      <h2>Secure login</h2>
+      <p>Password dalne ke baad login 7 din tak active rahega.</p>
+      <label>
+        <span>Password</span>
+        <span class="password-field">
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
+          <button id="showLoginPassword" class="text-button" type="button">Show</button>
+        </span>
+      </label>
+      <button class="primary wide" type="submit">Open Register</button>
+      <p id="setupMessage" class="setup-message hidden">Pehle <code>config.js</code> mein Supabase URL aur anon key add karein.</p>
+    </form>
+  </main>
+
+  <div id="appScreen" class="app hidden">
+    <header class="app-header">
+      <div class="brand-lockup">
+        <img src="app-icon-192.png" alt="">
+        <div>
+          <strong>Maqsood Karyana Store</strong>
+          <span id="headerDate"></span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="installBtn" class="icon-button" type="button" title="Install app" aria-label="Install app">↓</button>
+        <button id="logoutBtn" class="icon-button" type="button" title="Logout" aria-label="Logout">↪</button>
+      </div>
+    </header>
+
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <button class="nav-button active" data-view="dashboard">Overview</button>
+      <button class="nav-button" data-view="entry">Add Saman</button>
+      <button class="nav-button" data-view="history">History</button>
+      <button class="nav-button" data-view="analytics">Analytics</button>
+      <button class="nav-button" data-view="items">Items</button>
+    </nav>
+
+    <section class="app-content">
+      <section id="dashboardView" class="view">
+        <div class="page-heading">
+          <div><p class="eyebrow">Overview</p><h2>Aaj ka hisaab</h2></div>
+          <button class="primary" type="button" data-open-view="entry">+ Add Saman</button>
+        </div>
+        <div class="stats-grid">
+          <article class="stat"><span>Total</span><strong id="todayTotal">Rs 0</strong></article>
+          <article class="stat paid"><span>Paid</span><strong id="todayPaid">Rs 0</strong></article>
+          <article class="stat unpaid"><span>Unpaid</span><strong id="todayUnpaid">Rs 0</strong></article>
+          <article class="stat"><span>Items</span><strong id="todayCount">0</strong></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel-head"><h3>Recent entries</h3><button class="text-button" data-open-view="history">View all</button></div>
+            <div id="recentList" class="record-list"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3>Quick insight</h3></div>
+            <div class="insight">
+              <span>Sab se zyada baar</span>
+              <strong id="topFrequent">-</strong>
+            </div>
+            <div class="insight">
+              <span>Sab se zyada kharcha</span>
+              <strong id="topSpending">-</strong>
+            </div>
+            <div class="insight">
+              <span>Total baki raqam</span>
+              <strong id="allRemaining">Rs 0</strong>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="entryView" class="view hidden">
+        <div class="page-heading"><div><p class="eyebrow">Purchase</p><h2>Rozana saman add karein</h2></div></div>
+        <form id="entryForm" class="panel form-grid">
+          <input id="entryId" type="hidden">
+          <label><span>Date</span><input id="purchaseDate" type="date" required></label>
+          <label class="span-2">
+            <span>Item name</span>
+            <input id="itemName" list="itemOptions" autocomplete="off" placeholder="Example: Aata" required>
+            <datalist id="itemOptions"></datalist>
+          </label>
+          <label><span>Quantity</span><input id="quantity" type="number" min="0.01" step="0.01" value="1" required></label>
+          <label><span>Unit</span><select id="unit"><option>Kg</option><option>Gram</option><option>Liter</option><option>Packet</option><option>Piece</option><option>Dozen</option><option>Other</option></select></label>
+          <label><span>Total amount</span><input id="totalAmount" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+          <label><span>Paid amount</span><input id="paidAmount" type="number" min="0" step="0.01" inputmode="decimal" value="0" required></label>
+          <label><span>Remaining</span><input id="remainingAmount" type="text" value="Rs 0" readonly></label>
+          <label class="span-3"><span>Note (optional)</span><textarea id="note" rows="3" placeholder="Shop, quality ya koi aur detail"></textarea></label>
+          <div class="form-actions span-3">
+            <button class="primary" type="submit">Save Record</button>
+            <button id="clearEntryBtn" class="secondary" type="button">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="historyView" class="view hidden">
+        <div class="page-heading">
+          <div><p class="eyebrow">Records</p><h2>Purchase history</h2></div>
+          <div class="button-row"><button id="exportCsvBtn" class="secondary">CSV</button><button id="printBtn" class="secondary">Print / PDF</button></div>
+        </div>
+        <div class="panel filters">
+          <label><span>From</span><input id="filterFrom" type="date"></label>
+          <label><span>To</span><input id="filterTo" type="date"></label>
+          <label><span>Payment</span><select id="filterPayment"><option value="">All</option><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Partial">Partial</option></select></label>
+          <label><span>Item</span><input id="filterItem" list="itemOptions" placeholder="All items"></label>
+          <button id="showHistoryBtn" class="primary" type="button">Show History</button>
+        </div>
+        <div id="historySummary" class="summary-strip"></div>
+        <div id="historyTable" class="table-wrap panel"></div>
+      </section>
+
+      <section id="analyticsView" class="view hidden">
+        <div class="page-heading"><div><p class="eyebrow">Insights</p><h2>Kharchay ka tajzia</h2></div></div>
+        <div class="panel filters compact">
+          <label><span>From</span><input id="analyticsFrom" type="date"></label>
+          <label><span>To</span><input id="analyticsTo" type="date"></label>
+          <button id="showAnalyticsBtn" class="primary" type="button">Update</button>
+        </div>
+        <div class="analytics-grid">
+          <article class="panel"><h3>Sab se zyada baar khareedi gayi items</h3><div id="frequencyChart" class="bar-chart"></div></article>
+          <article class="panel"><h3>Sab se zyada paisay wali items</h3><div id="spendingChart" class="bar-chart spending"></div></article>
+        </div>
+      </section>
+
+      <section id="itemsView" class="view hidden">
+        <div class="page-heading"><div><p class="eyebrow">Catalogue</p><h2>Saved items</h2></div></div>
+        <form id="itemForm" class="panel inline-form">
+          <input id="catalogueItemName" placeholder="New item name" required>
+          <button class="primary" type="submit">Add Item</button>
+        </form>
+        <div id="itemList" class="panel item-list"></div>
+      </section>
+    </section>
+
+    <nav class="bottom-nav" aria-label="Mobile navigation">
+      <button class="nav-button active" data-view="dashboard"><span>⌂</span>Home</button>
+      <button class="nav-button" data-view="entry"><span>＋</span>Add</button>
+      <button class="nav-button" data-view="history"><span>▤</span>History</button>
+      <button class="nav-button" data-view="analytics"><span>▥</span>Insights</button>
+      <button class="nav-button" data-view="items"><span>⌄</span>Items</button>
+    </nav>
+  </div>
+
+  <script src="config.js?v=1"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
