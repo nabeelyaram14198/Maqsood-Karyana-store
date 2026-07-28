@@ -1,4 +1,4 @@
-const CACHE = "maqsood-karyana-v1";
+const CACHE = "maqsood-karyana-v3";
 const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./config.js", "./manifest.webmanifest", "./app-icon-192.png", "./app-icon-512.png"];
 
 self.addEventListener("install", (event) => {

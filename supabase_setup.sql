@@ -37,8 +37,22 @@ create table if not exists public.store_entries (
   total_amount numeric(14,2) not null default 0 check (total_amount >= 0),
   paid_amount numeric(14,2) not null default 0 check (paid_amount >= 0 and paid_amount <= total_amount),
   note text not null default '',
+  source_group text not null default 'daily',
+  source_ref text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+alter table public.store_entries add column if not exists source_group text not null default 'daily';
+alter table public.store_entries add column if not exists source_ref text;
+create unique index if not exists store_entries_source_ref_unique on public.store_entries(source_ref) where source_ref is not null;
+
+create table if not exists public.store_ledger (
+  id uuid primary key default gen_random_uuid(),
+  entry_date date not null default current_date,
+  entry_type text not null check (entry_type in ('opening_balance', 'payment', 'adjustment')),
+  amount numeric(14,2) not null check (amount > 0),
+  note text not null default '',
+  created_at timestamptz not null default now()
 );
 
 create or replace function public.store_request_token()
@@ -105,6 +119,7 @@ alter table public.store_users enable row level security;
 alter table private.store_sessions enable row level security;
 alter table public.store_items enable row level security;
 alter table public.store_entries enable row level security;
+alter table public.store_ledger enable row level security;
 
 drop policy if exists store_items_session_all on public.store_items;
 create policy store_items_session_all on public.store_items for all to anon, authenticated
@@ -116,10 +131,15 @@ create policy store_entries_session_all on public.store_entries for all to anon,
 using ((select public.store_session_valid()))
 with check ((select public.store_session_valid()));
 
+drop policy if exists store_ledger_session_all on public.store_ledger;
+create policy store_ledger_session_all on public.store_ledger for all to anon, authenticated
+using ((select public.store_session_valid()))
+with check ((select public.store_session_valid()));
+
 revoke all on public.store_users from public, anon, authenticated;
 revoke all on private.store_sessions from public, anon, authenticated;
 revoke all on function public.store_login(text), public.store_restore_session(), public.store_logout(), public.store_session_valid() from public;
-grant select, insert, update, delete on public.store_items, public.store_entries to anon, authenticated;
+grant select, insert, update, delete on public.store_items, public.store_entries, public.store_ledger to anon, authenticated;
 grant execute on function public.store_login(text), public.store_restore_session(), public.store_logout(), public.store_session_valid() to anon, authenticated;
 
 -- Initial owner login. Change the password below before running this file.

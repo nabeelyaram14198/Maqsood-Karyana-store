@@ -3,7 +3,15 @@
 
   const config = window.MAQSOOD_CONFIG || {};
   const SESSION_KEY = "maqsood-karyana-session";
-  const state = { token: localStorage.getItem(SESSION_KEY) || "", items: [], entries: [], deferredPrompt: null };
+  const state = { token: localStorage.getItem(SESSION_KEY) || "", items: [], entries: [], ledger: [], deferredPrompt: null };
+  const BASIC_ITEMS = [
+    "Aata", "Chawal", "Cheeni", "Daal Chana", "Daal Masoor", "Daal Moong",
+    "Daal Mash", "Besan", "Suji", "Maida", "Namak", "Laal Mirch", "Haldi",
+    "Dhania Powder", "Garam Masala", "Cooking Oil", "Ghee", "Chai Patti",
+    "Doodh", "Dahi", "Anday", "Bread", "Biscuit", "Soap", "Shampoo",
+    "Toothpaste", "Washing Powder", "Dishwash", "Tissue Paper", "Match Box",
+    "Piyaz", "Aloo", "Tamatar", "Lehsan", "Adrak"
+  ];
   const $ = (id) => document.getElementById(id);
   const configured = /^https:\/\//.test(config.supabaseUrl || "") && !String(config.supabaseAnonKey || "").startsWith("YOUR_");
   const money = (value) => `Rs ${Number(value || 0).toLocaleString("en-PK", { maximumFractionDigits: 2 })}`;
@@ -94,15 +102,21 @@
 
   async function loadItems() {
     state.items = await api("store_items?select=*&order=name.asc") || [];
-    $("itemOptions").innerHTML = state.items.map((item) => `<option value="${escapeHtml(item.name)}"></option>`).join("");
+    const options = [...new Set([...BASIC_ITEMS, ...state.items.map((item) => item.name)])]
+      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+    $("itemOptions").innerHTML = options.map((name) => `<option value="${escapeHtml(name)}"></option>`).join("");
   }
 
   async function loadEntries() {
     state.entries = await api("store_entries?select=*&order=purchase_date.desc,created_at.desc") || [];
   }
 
+  async function loadLedger() {
+    state.ledger = await api("store_ledger?select=*&order=entry_date.desc,created_at.desc") || [];
+  }
+
   async function refreshAll() {
-    await Promise.all([loadItems(), loadEntries()]);
+    await Promise.all([loadItems(), loadEntries(), loadLedger()]);
     renderDashboard();
     renderHistory();
     renderAnalytics();
@@ -150,10 +164,71 @@
     const spending = [...groups].sort((a, b) => b.spend - a.spend)[0];
     $("topFrequent").textContent = frequent ? `${frequent.name} (${frequent.count} times)` : "-";
     $("topSpending").textContent = spending ? `${spending.name} - ${money(spending.spend)}` : "-";
-    $("allRemaining").textContent = money(totals(state.entries).remaining);
+    const allTotals = totals(state.entries);
+    $("allRemaining").textContent = money(allTotals.remaining);
+    renderLedger(allTotals);
     $("recentList").innerHTML = state.entries.slice(0, 6).map((row) => `
       <div class="record-row"><div><strong>${escapeHtml(row.item_name)}</strong><span>${escapeHtml(row.purchase_date)} · ${escapeHtml(row.quantity)} ${escapeHtml(row.unit)}</span></div><strong>${money(row.total_amount)}</strong></div>
     `).join("") || `<p class="empty">Abhi koi record nahi.</p>`;
+  }
+
+  function ledgerTotals() {
+    return state.ledger.reduce((acc, row) => {
+      const amount = Number(row.amount || 0);
+      if (row.entry_type === "opening_balance") acc.opening += amount;
+      if (row.entry_type === "payment") acc.payments += amount;
+      if (row.entry_type === "adjustment") acc.adjustments += amount;
+      return acc;
+    }, { opening: 0, payments: 0, adjustments: 0 });
+  }
+
+  function renderLedger(allTotals = totals(state.entries)) {
+    const ledger = ledgerTotals();
+    const oldRows = state.entries.filter((row) => row.source_group === "old_register");
+    const newRows = state.entries.filter((row) => row.source_group !== "old_register");
+    const remaining = ledger.opening + ledger.adjustments + allTotals.total - allTotals.paid - ledger.payments;
+    $("openingBalance").textContent = money(ledger.opening + ledger.adjustments);
+    $("oldRegisterTotal").textContent = money(totals(oldRows).total);
+    $("newPurchasesTotal").textContent = money(totals(newRows).total);
+    $("entryPaidTotal").textContent = money(allTotals.paid);
+    $("depositTotal").textContent = money(ledger.payments);
+    $("accountRemaining").textContent = money(remaining);
+    $("ledgerHistory").innerHTML = state.ledger.length ? state.ledger.slice(0, 8).map((row) => `
+      <div class="record-row">
+        <div><strong>${row.entry_type === "payment" ? "Jama payment" : row.entry_type === "opening_balance" ? "Pichla balance" : "Adjustment"}</strong><span>${escapeHtml(row.entry_date)} · ${escapeHtml(row.note || "-")}</span></div>
+        <div class="ledger-row-end"><strong>${row.entry_type === "payment" ? "-" : "+"}${money(row.amount)}</strong><button class="row-action danger" data-delete-ledger="${row.id}">Delete</button></div>
+      </div>`).join("") : `<p class="empty">Abhi koi alag khata entry nahi.</p>`;
+    $("ledgerHistory").querySelectorAll("[data-delete-ledger]").forEach((button) => button.addEventListener("click", () => deleteLedger(button.dataset.deleteLedger)));
+  }
+
+  async function saveLedger(event) {
+    event.preventDefault();
+    try {
+      await api("store_ledger", { method: "POST", body: JSON.stringify({
+        entry_date: $("ledgerDate").value,
+        entry_type: $("ledgerType").value,
+        amount: Number($("ledgerAmount").value),
+        note: $("ledgerNote").value.trim()
+      }), prefer: "return=minimal" });
+      $("ledgerAmount").value = "";
+      $("ledgerNote").value = "";
+      await loadLedger();
+      renderDashboard();
+      toast("Khata entry save ho gayi");
+    } catch (error) {
+      console.error(error);
+      toast("Khata entry save failed. Updated SQL run karein.");
+    }
+  }
+
+  async function deleteLedger(id) {
+    if (!confirm("Ye khata entry delete karni hai?")) return;
+    try {
+      await api(`store_ledger?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", prefer: "return=minimal" });
+      await loadLedger();
+      renderDashboard();
+      toast("Khata entry deleted");
+    } catch { toast("Delete failed"); }
   }
 
   function updateRemaining() {
@@ -186,7 +261,8 @@
         unit: $("unit").value,
         total_amount: total,
         paid_amount: paid,
-        note: $("note").value.trim()
+        note: $("note").value.trim(),
+        source_group: "daily"
       };
       const id = $("entryId").value;
       await api(id ? `store_entries?id=eq.${encodeURIComponent(id)}` : "store_entries", { method: id ? "PATCH" : "POST", body: JSON.stringify(row), prefer: "return=minimal" });
@@ -343,19 +419,30 @@
     $("exportCsvBtn").addEventListener("click", exportCsv);
     $("printBtn").addEventListener("click", () => window.print());
     $("itemForm").addEventListener("submit", addItem);
-    $("installBtn").addEventListener("click", async () => {
+    $("ledgerForm").addEventListener("submit", saveLedger);
+    document.querySelectorAll("[data-install-app]").forEach((button) => button.addEventListener("click", async () => {
       if (!state.deferredPrompt) return toast("Browser menu se Install App choose karein");
       state.deferredPrompt.prompt();
       await state.deferredPrompt.userChoice;
       state.deferredPrompt = null;
-      $("installBtn").classList.add("hidden");
-    });
+      updateInstallButtons();
+    }));
     window.addEventListener("beforeinstallprompt", (event) => {
       event.preventDefault();
       state.deferredPrompt = event;
-      $("installBtn").classList.remove("hidden");
+      updateInstallButtons();
     });
-    window.addEventListener("appinstalled", () => $("installBtn").classList.add("hidden"));
+    window.addEventListener("appinstalled", () => {
+      state.deferredPrompt = null;
+      updateInstallButtons();
+    });
+  }
+
+  function updateInstallButtons() {
+    const installed = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    document.querySelectorAll("[data-install-app]").forEach((button) => {
+      button.classList.toggle("hidden", installed || !state.deferredPrompt);
+    });
   }
 
   function init() {
@@ -365,8 +452,9 @@
     $("filterTo").value = today();
     $("analyticsFrom").value = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
     $("analyticsTo").value = today();
-    if (matchMedia("(display-mode: standalone)").matches) $("installBtn").classList.add("hidden");
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=1").catch(console.error);
+    $("ledgerDate").value = today();
+    updateInstallButtons();
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=2").catch(console.error);
     restoreSession();
   }
 

@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#176b45">
   <meta name="description" content="Daily grocery purchase and payment register">
   <title>Maqsood Karyana Store</title>
-  <link rel="manifest" href="manifest.webmanifest?v=1">
-  <link rel="icon" href="app-icon-192.png?v=1">
-  <link rel="apple-touch-icon" href="app-icon-192.png?v=1">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="manifest" href="manifest.webmanifest?v=3">
+  <link rel="icon" href="app-icon-192.png?v=3">
+  <link rel="apple-touch-icon" href="app-icon-192.png?v=3">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -20,6 +20,7 @@
       <p class="eyebrow">Daily household register</p>
       <h1>Maqsood Karyana Store</h1>
       <p>Ghar ke rozana saman aur payment ka asan record</p>
+      <button id="loginInstallBtn" class="secondary install-action hidden" type="button" data-install-app>Install App</button>
     </section>
     <form id="loginForm" class="login-card">
       <h2>Secure login</h2>
@@ -46,7 +47,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button id="installBtn" class="icon-button" type="button" title="Install app" aria-label="Install app">↓</button>
+        <button id="installBtn" class="icon-button hidden" type="button" title="Install app" aria-label="Install app" data-install-app>↓</button>
         <button id="logoutBtn" class="icon-button" type="button" title="Logout" aria-label="Logout">↪</button>
       </div>
     </header>
@@ -92,6 +93,27 @@
             </div>
           </article>
         </div>
+        <article class="panel ledger-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">Khata</p><h3>Baqaya aur jama record</h3></div>
+          </div>
+          <div class="ledger-stats">
+            <div><span>Pichla balance</span><strong id="openingBalance">Rs 0</strong></div>
+            <div><span>Purani lists ka saman</span><strong id="oldRegisterTotal">Rs 0</strong></div>
+            <div><span>App mein naya saman</span><strong id="newPurchasesTotal">Rs 0</strong></div>
+            <div><span>Items ke sath paid</span><strong id="entryPaidTotal">Rs 0</strong></div>
+            <div><span>Alag jama karwaye</span><strong id="depositTotal">Rs 0</strong></div>
+            <div class="balance-total"><span>Ab kul baqaya</span><strong id="accountRemaining">Rs 0</strong></div>
+          </div>
+          <form id="ledgerForm" class="ledger-form">
+            <label><span>Date</span><input id="ledgerDate" type="date" required></label>
+            <label><span>Entry type</span><select id="ledgerType"><option value="payment">Jama payment</option><option value="opening_balance">Pichla balance set karein</option><option value="adjustment">Balance adjustment</option></select></label>
+            <label><span>Amount</span><input id="ledgerAmount" type="number" min="0.01" step="0.01" required></label>
+            <label><span>Note</span><input id="ledgerNote" placeholder="Optional detail"></label>
+            <button class="primary" type="submit">Save Khata Entry</button>
+          </form>
+          <div id="ledgerHistory" class="ledger-history"></div>
+        </article>
       </section>
 
       <section id="entryView" class="view hidden">
@@ -165,7 +187,7 @@
     </nav>
   </div>
 
-  <script src="config.js?v=1"></script>
-  <script src="app.js?v=1"></script>
+  <script src="config.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
