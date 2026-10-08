@@ -562,14 +562,14 @@
     $("personalKhataBorrowed").textContent = money(totals.borrowed);
     $("personalKhataReturned").textContent = money(totals.returned);
     $("personalKhataOutstanding").textContent = money(Math.abs(outstanding));
-    $("personalKhataOutstandingLabel").textContent = outstanding >= 0 ? "Aap ko wapas lena hai" : "Aap ko wapas karna hai";
+    $("personalKhataOutstandingLabel").textContent = outstanding >= 0 ? "Aapi ko dene hain" : "Aapi se wapas lene hain";
     document.querySelectorAll("[data-personal-khata-filter]").forEach((button) => button.classList.toggle("active", button.dataset.personalKhataFilter === state.personalKhataFilter));
     const rows = state.personalKhata.filter((row) => state.personalKhataFilter === "all" || row.entry_type === state.personalKhataFilter);
     $("personalKhataList").innerHTML = rows.length ? rows.map((row) => {
       const taken = row.entry_type !== "returned";
       return `<article class="personal-khata-row ${taken ? "taken" : "returned"}">
         <div class="khata-row-icon">${taken ? "↑" : "↓"}</div>
-        <div class="khata-row-main"><div class="khata-row-title"><strong>${escapeHtml(row.person_name)}</strong><span class="khata-badge ${taken ? "taken" : "returned"}">${taken ? "Aap se liye" : "Wapas kiye"}</span></div><span>${escapeHtml(row.note || "Koi note nahi")}</span><small>${pakistanDateTime(row.entry_at)}</small></div>
+        <div class="khata-row-main"><div class="khata-row-title"><strong>${escapeHtml(row.person_name)}</strong><span class="khata-badge ${taken ? "taken" : "returned"}">${taken ? "Aapi se liye" : "Aapi ko wapas kiye"}</span></div><span>${escapeHtml(row.note || "Koi note nahi")}</span><small>${pakistanDateTime(row.entry_at)}</small></div>
         <div class="khata-row-end"><strong>${taken ? "+" : "−"}${money(row.amount)}</strong>${IS_ADMIN ? `<div><button class="row-action" data-edit-personal-khata="${row.id}">Edit</button><button class="row-action danger" data-delete-personal-khata="${row.id}">Remove</button></div>` : ""}</div>
       </article>`;
     }).join("") : `<p class="empty">Is filter mein koi khata entry nahi.</p>`;
@@ -582,15 +582,15 @@
   async function savePersonalKhata(event) {
     event.preventDefault();
     const id = $("personalKhataId").value;
-    const personName = $("personalKhataPerson").value.trim();
+    const personName = "Aapi";
     const amount = Number($("personalKhataAmount").value || 0);
     const localDateTime = $("personalKhataDateTime").value;
-    if (!personName || amount <= 0 || !localDateTime) return toast("Naam, amount aur date/time zaroori hai");
+    if (amount <= 0 || !localDateTime) return toast("Amount aur date/time zaroori hai");
     const body = { person_name: personName, amount, entry_type: $("personalKhataType").value, note: $("personalKhataNote").value.trim(), entry_at: new Date(`${localDateTime}:00+05:00`).toISOString(), updated_by: state.profile || "Admin", updated_at: new Date().toISOString() };
     try {
       if (id) await api(`personal_khata_entries?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(body), prefer: "return=minimal" });
       else await api("personal_khata_entries", { method: "POST", body: JSON.stringify({ ...body, created_by: state.profile || "Admin" }), prefer: "return=minimal" });
-      await logActivity(id ? "personal_khata_edit" : "personal_khata_add", "personal_khata", id || null, { person: personName, amount, type: body.entry_type });
+      await logActivity(id ? "aapi_khata_edit" : "aapi_khata_add", "aapi_khata", id || null, { amount, type: body.entry_type });
       await loadPersonalKhata();
       resetPersonalKhataForm();
       renderPersonalKhata();
@@ -614,10 +614,10 @@
 
   async function deletePersonalKhata(id) {
     const row = state.personalKhata.find((entry) => entry.id === id);
-    if (!row || !confirm(`Remove khata entry?\n\n${row.person_name} · ${money(row.amount)}\n\nYe action undo nahi hoga.`)) return;
+    if (!row || !confirm(`Remove Aapi khata entry?\n\n${money(row.amount)}\n\nYe action undo nahi hoga.`)) return;
     try {
       await api(`personal_khata_entries?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", prefer: "return=minimal" });
-      await logActivity("personal_khata_delete", "personal_khata", id, { person: row.person_name, amount: row.amount, type: row.entry_type });
+      await logActivity("aapi_khata_delete", "aapi_khata", id, { amount: row.amount, type: row.entry_type });
       await loadPersonalKhata();
       renderPersonalKhata();
       toast("Khata entry remove ho gayi");

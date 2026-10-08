@@ -67,7 +67,7 @@
       <button class="nav-button active" data-view="dashboard" data-admin-only>Overview</button>
       <button class="nav-button" data-view="entry">Add Saman</button>
       <button class="nav-button" data-view="history">History</button>
-      <button class="nav-button" data-view="khata">Udhar Khata</button>
+      <button class="nav-button" data-view="khata">Aapi Khata</button>
       <button class="nav-button" data-view="analytics" data-admin-only>Analytics</button>
       <button class="nav-button" data-view="activity" data-admin-only>User Activity</button>
       <button class="nav-button" data-view="items">Items</button>
@@ -201,21 +201,21 @@
 
       <section id="khataView" class="view hidden">
         <div class="page-heading">
-          <div><p class="eyebrow">Personal money record</p><h2>Udhar Khata</h2><p class="khata-intro">Aap se liye hue aur wapas kiye hue paison ka saaf record.</p></div>
+          <div><p class="eyebrow">Aapi se udhar</p><h2>Aapi Khata</h2><p class="khata-intro">Aapi (bari behen) se liye hue aur un ko wapas kiye hue paison ka saaf record.</p></div>
       </div>
         <section class="khata-summary" aria-label="Khata summary">
-          <article><span>Aap se liye</span><strong id="personalKhataBorrowed">Rs 0</strong><small>Udhar diya hua</small></article>
-          <article><span>Wapas kiye</span><strong id="personalKhataReturned">Rs 0</strong><small>Wasool hua</small></article>
-          <article class="khata-balance-card"><span id="personalKhataOutstandingLabel">Aap ko wapas lena hai</span><strong id="personalKhataOutstanding">Rs 0</strong><small>Current balance</small></article>
+          <article><span>Aapi se liye</span><strong id="personalKhataBorrowed">Rs 0</strong><small>Liye hue udhar</small></article>
+          <article><span>Aapi ko wapas kiye</span><strong id="personalKhataReturned">Rs 0</strong><small>Wapas ki hui raqam</small></article>
+          <article class="khata-balance-card"><span id="personalKhataOutstandingLabel">Aapi ko dene hain</span><strong id="personalKhataOutstanding">Rs 0</strong><small>Current balance</small></article>
         </section>
 
         <article class="panel personal-khata-form-card" data-admin-only>
-          <div class="panel-head"><div><p class="eyebrow">Admin control</p><h3>Nayi udhar entry</h3></div><span class="khata-admin-tag">Admin only</span></div>
+          <div class="panel-head"><div><p class="eyebrow">Admin control</p><h3>Aapi ka naya udhar record</h3></div><span class="khata-admin-tag">Admin only</span></div>
           <form id="personalKhataForm" class="personal-khata-form">
             <input id="personalKhataId" type="hidden">
-            <label><span>Naam / jis ne paisay liye</span><input id="personalKhataPerson" maxlength="100" autocomplete="name" placeholder="Example: Ali" required></label>
+            <input id="personalKhataPerson" type="hidden" value="Aapi">
             <label><span>Amount</span><input id="personalKhataAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Rs 0" required></label>
-            <label><span>Type</span><select id="personalKhataType"><option value="borrowed">Aap se liye</option><option value="returned">Wapas kiye</option></select></label>
+            <label><span>Type</span><select id="personalKhataType"><option value="borrowed">Aapi se liye</option><option value="returned">Aapi ko wapas kiye</option></select></label>
             <label><span>Date & time</span><input id="personalKhataDateTime" type="datetime-local" required></label>
             <label class="khata-note"><span>Note</span><input id="personalKhataNote" maxlength="240" placeholder="Optional detail"></label>
             <div class="form-actions"><button id="personalKhataSaveBtn" class="primary" type="submit">Khata mein add karein</button><button id="cancelPersonalKhataEdit" class="secondary hidden" type="button">Cancel edit</button></div>
@@ -223,7 +223,7 @@
         </article>
 
         <article class="panel personal-khata-history">
-          <div class="panel-head"><div><p class="eyebrow">Live record</p><h3>Khata history</h3></div><div class="khata-filters" role="group" aria-label="Khata filter"><button type="button" class="active" data-personal-khata-filter="all">Sab</button><button type="button" data-personal-khata-filter="borrowed">Liye</button><button type="button" data-personal-khata-filter="returned">Wapas</button></div></div>
+          <div class="panel-head"><div><p class="eyebrow">Live record</p><h3>Aapi Khata history</h3></div><div class="khata-filters" role="group" aria-label="Khata filter"><button type="button" class="active" data-personal-khata-filter="all">Sab</button><button type="button" data-personal-khata-filter="borrowed">Aapi se liye</button><button type="button" data-personal-khata-filter="returned">Wapas kiye</button></div></div>
           <div id="personalKhataList" class="personal-khata-list"></div>
         </article>
       </section>
@@ -261,7 +261,7 @@
       <button class="nav-button active" data-view="dashboard" data-admin-only><span>⌂</span>Home</button>
       <button class="nav-button" data-view="entry"><span>＋</span>Add</button>
       <button class="nav-button" data-view="history"><span>▤</span>History</button>
-      <button class="nav-button" data-view="khata"><span>₨</span>Khata</button>
+      <button class="nav-button" data-view="khata"><span>₨</span>Aapi</button>
       <button class="nav-button" data-view="analytics" data-admin-only><span>▥</span>Insights</button>
       <button class="nav-button" data-view="activity" data-admin-only><span>◷</span>Activity</button>
       <button class="nav-button" data-view="items"><span>⌄</span>Items</button>
