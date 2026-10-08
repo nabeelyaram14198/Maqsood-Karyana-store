@@ -1,4 +1,4 @@
 window.MAQSOOD_CONFIG = {
-  supabaseUrl: "YOUR_SUPABASE_URL",
-  supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY"
+  supabaseUrl: "https://sgjthartydvfofefkpsb.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnanRoYXJ0eWR2Zm9mZWZrcHNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNDczNDAsImV4cCI6MjEwMDgyMzM0MH0.OK1FKde9PZn3Cy_r_QuQsLrB7yiozca4E7VeoKvAYoA"
 };

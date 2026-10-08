@@ -6,19 +6,20 @@
   <meta name="theme-color" content="#176b45">
   <meta name="description" content="Daily grocery purchase and payment register">
   <title>Maqsood Karyana Store</title>
-  <link rel="manifest" href="manifest.webmanifest?v=3">
-  <link rel="icon" href="app-icon-192.png?v=3">
-  <link rel="apple-touch-icon" href="app-icon-192.png?v=3">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="manifest" href="manifest.webmanifest?v=6">
+  <link rel="icon" href="app-icon-192.png?v=6">
+  <link rel="apple-touch-icon" href="app-icon-192.png?v=6">
+  <link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="undoToast" class="undo-toast hidden" role="status"><span>Record Trash mein move ho gaya.</span><button id="undoDeleteBtn" type="button">Undo</button></div>
 
   <main id="loginScreen" class="login-screen">
     <section class="login-brand">
       <img src="app-icon-192.png" alt="Maqsood Karyana Store logo">
       <p class="eyebrow">Daily household register</p>
-      <h1>Maqsood Karyana Store</h1>
+      <h1 id="loginAppTitle">Maqsood Karyana Store</h1>
       <p>Ghar ke rozana saman aur payment ka asan record</p>
       <button id="loginInstallBtn" class="secondary install-action hidden" type="button" data-install-app>Install App</button>
     </section>
@@ -42,36 +43,73 @@
       <div class="brand-lockup">
         <img src="app-icon-192.png" alt="">
         <div>
-          <strong>Maqsood Karyana Store</strong>
+          <strong id="headerAppTitle">Maqsood Karyana Store</strong>
           <span id="headerDate"></span>
         </div>
       </div>
       <div class="header-actions">
+        <div class="today-chip" title="Aaj ka katcha">
+          <span>Aaj</span>
+          <strong id="headerTodayTotal">Rs 0</strong>
+          <small id="headerTodayCount">0 items</small>
+        </div>
+        <button id="profileBtn" class="profile-button" type="button" title="Profile badlein">
+          <span id="profileInitial">?</span>
+          <strong id="profileName">Profile</strong>
+        </button>
+        <span id="offlineBadge" class="offline-badge hidden">Offline</span>
         <button id="installBtn" class="icon-button hidden" type="button" title="Install app" aria-label="Install app" data-install-app>↓</button>
         <button id="logoutBtn" class="icon-button" type="button" title="Logout" aria-label="Logout">↪</button>
       </div>
     </header>
 
     <nav class="desktop-nav" aria-label="Main navigation">
-      <button class="nav-button active" data-view="dashboard">Overview</button>
+      <button class="nav-button active" data-view="dashboard" data-admin-only>Overview</button>
       <button class="nav-button" data-view="entry">Add Saman</button>
       <button class="nav-button" data-view="history">History</button>
-      <button class="nav-button" data-view="analytics">Analytics</button>
+      <button class="nav-button" data-view="khata">Udhar Khata</button>
+      <button class="nav-button" data-view="analytics" data-admin-only>Analytics</button>
+      <button class="nav-button" data-view="activity" data-admin-only>User Activity</button>
       <button class="nav-button" data-view="items">Items</button>
     </nav>
 
     <section class="app-content">
-      <section id="dashboardView" class="view">
+      <section id="dashboardView" class="view" data-admin-only>
         <div class="page-heading">
           <div><p class="eyebrow">Overview</p><h2>Aaj ka hisaab</h2></div>
           <button class="primary" type="button" data-open-view="entry">+ Add Saman</button>
         </div>
         <div class="stats-grid">
-          <article class="stat"><span>Total</span><strong id="todayTotal">Rs 0</strong></article>
-          <article class="stat paid"><span>Paid</span><strong id="todayPaid">Rs 0</strong></article>
-          <article class="stat unpaid"><span>Unpaid</span><strong id="todayUnpaid">Rs 0</strong></article>
-          <article class="stat"><span>Items</span><strong id="todayCount">0</strong></article>
+          <article class="stat"><span>Aaj ka total</span><strong id="todayTotal">Rs 0</strong></article>
+          <article class="stat"><span>Aaj ki entries</span><strong id="todayCount">0</strong></article>
+          <article class="stat"><span>Entry karne wala</span><strong id="todayEnteredBy">-</strong></article>
+          <article class="stat unpaid"><span>Offline drafts</span><strong id="offlineDraftCount">0</strong></article>
         </div>
+        <section class="visual-dashboard" aria-label="Automatic business insights">
+          <article class="panel chart-panel trend-panel">
+            <div class="panel-head dynamic-chart-head"><div><p class="eyebrow">Live automatic insight</p><h3 id="trendTitle">Last 30 days spending</h3></div><div class="period-controls" role="group" aria-label="Dashboard period"><button type="button" data-dashboard-days="7">7D</button><button type="button" data-dashboard-days="30" class="active">30D</button><button type="button" data-dashboard-days="90">90D</button><button type="button" data-dashboard-days="all">All</button></div></div>
+            <strong id="trendTotal" class="chart-total">Rs 0</strong>
+            <div id="spendingTrendChart" class="line-chart" aria-label="30 day spending graph"></div>
+            <div id="chartTooltip" class="chart-tooltip hidden"></div>
+            <div id="trendComparison" class="trend-comparison">Data calculate ho raha hai…</div>
+          </article>
+          <article class="panel chart-panel"><div class="panel-head"><div><p class="eyebrow">Spend mix</p><h3>Top saman</h3></div></div><div id="dashboardTopItems" class="donut-layout"></div></article>
+        </section>
+        <section class="summary-reminder-grid">
+          <article class="panel"><div class="panel-head"><div><p class="eyebrow">Monthly summary</p><h3 id="monthlySummaryTitle">Is month ka kharcha</h3></div></div><div id="monthlySummary" class="monthly-summary"></div></article>
+        </section>
+        <article id="dashboardDrilldown" class="panel drilldown-panel">
+          <div class="panel-head"><div><p class="eyebrow">Interactive drill-down</p><h3 id="drilldownTitle">Graph ya item par click karke insight dekhein</h3></div><button id="clearDashboardFilter" class="secondary hidden" type="button">Clear selection</button></div>
+          <div id="drilldownStats" class="drilldown-stats"><p class="empty">Trend point ya Top Saman item select karain.</p></div>
+          <div id="drilldownRecords" class="drilldown-records"></div>
+        </article>
+        <article id="offlineDraftPanel" class="panel offline-panel hidden">
+          <div class="panel-head">
+            <div><p class="eyebrow">Offline</p><h3>Internet ka intezar karti entries</h3></div>
+            <button id="syncDraftsBtn" class="primary" type="button">Ab sync karein</button>
+          </div>
+          <div id="offlineDraftList" class="record-list"></div>
+        </article>
         <div class="dashboard-grid">
           <article class="panel">
             <div class="panel-head"><h3>Recent entries</h3><button class="text-button" data-open-view="history">View all</button></div>
@@ -87,20 +125,18 @@
               <span>Sab se zyada kharcha</span>
               <strong id="topSpending">-</strong>
             </div>
-            <div class="insight">
-              <span>Total baki raqam</span>
-              <strong id="allRemaining">Rs 0</strong>
-            </div>
           </article>
         </div>
-        <article class="panel ledger-panel">
+        <article class="panel ledger-panel" data-admin-only>
           <div class="panel-head">
             <div><p class="eyebrow">Khata</p><h3>Baqaya aur jama record</h3></div>
           </div>
           <div class="ledger-stats">
             <div><span>Pichla balance</span><strong id="openingBalance">Rs 0</strong></div>
-            <div><span>Purani lists ka saman</span><strong id="oldRegisterTotal">Rs 0</strong></div>
-            <div><span>App mein naya saman</span><strong id="newPurchasesTotal">Rs 0</strong></div>
+            <div><span>1. Is verified list ka sum</span><strong id="oldRegisterTotal">Rs 0</strong></div>
+            <div><span>2. Is ke baad add saman</span><strong id="newPurchasesTotal">Rs 0</strong></div>
+            <div><span>3. Dono lists ka sum</span><strong id="combinedPurchasesTotal">Rs 0</strong></div>
+            <div><span>4. Pichla balance + dono sums</span><strong id="grossAccountTotal">Rs 0</strong></div>
             <div><span>Items ke sath paid</span><strong id="entryPaidTotal">Rs 0</strong></div>
             <div><span>Alag jama karwaye</span><strong id="depositTotal">Rs 0</strong></div>
             <div class="balance-total"><span>Ab kul baqaya</span><strong id="accountRemaining">Rs 0</strong></div>
@@ -120,23 +156,25 @@
         <div class="page-heading"><div><p class="eyebrow">Purchase</p><h2>Rozana saman add karein</h2></div></div>
         <form id="entryForm" class="panel form-grid">
           <input id="entryId" type="hidden">
-          <label><span>Date</span><input id="purchaseDate" type="date" required></label>
+          <input id="purchaseDate" type="hidden">
+          <div class="auto-date-card"><span>Date, day & time</span><strong id="entryCurrentDateTime">Automatic current Pakistan time</strong></div>
           <label class="span-2">
             <span>Item name</span>
-            <input id="itemName" list="itemOptions" autocomplete="off" placeholder="Example: Aata" required>
+            <span class="voice-field"><input id="itemName" list="itemOptions" autocomplete="off" placeholder="Example: Aata" required><button id="voiceItemBtn" class="voice-button" type="button" aria-label="Voice se item name likhein" title="Voice se item bolain">🎙 <span>Bolain</span></button></span>
             <datalist id="itemOptions"></datalist>
           </label>
-          <label><span>Quantity</span><input id="quantity" type="number" min="0.01" step="0.01" value="1" required></label>
-          <label><span>Unit</span><select id="unit"><option>Kg</option><option>Gram</option><option>Liter</option><option>Packet</option><option>Piece</option><option>Dozen</option><option>Other</option></select></label>
           <label><span>Total amount</span><input id="totalAmount" type="number" min="0" step="0.01" inputmode="decimal" required></label>
-          <label><span>Paid amount</span><input id="paidAmount" type="number" min="0" step="0.01" inputmode="decimal" value="0" required></label>
-          <label><span>Remaining</span><input id="remainingAmount" type="text" value="Rs 0" readonly></label>
-          <label class="span-3"><span>Note (optional)</span><textarea id="note" rows="3" placeholder="Shop, quality ya koi aur detail"></textarea></label>
+          <input id="quantity" type="hidden" value="1">
+          <input id="unit" type="hidden" value="Other">
+          <input id="paidAmount" type="hidden" value="0">
+          <input id="remainingAmount" type="hidden" value="Rs 0">
+          <input id="note" type="hidden" value="">
           <div class="form-actions span-3">
             <button class="primary" type="submit">Save Record</button>
             <button id="clearEntryBtn" class="secondary" type="button">Clear</button>
           </div>
         </form>
+        <article class="panel quick-items-panel"><div class="panel-head"><div><p class="eyebrow">Quick add</p><h3>Tasveer se saman chunain</h3></div><small>Card par click karain</small></div><div id="quickItemGallery" class="quick-item-gallery"></div></article>
       </section>
 
       <section id="historyView" class="view hidden">
@@ -144,18 +182,53 @@
           <div><p class="eyebrow">Records</p><h2>Purchase history</h2></div>
           <div class="button-row"><button id="exportCsvBtn" class="secondary">CSV</button><button id="printBtn" class="secondary">Print / PDF</button></div>
         </div>
+        <article class="panel backup-panel" data-admin-only>
+          <div><p class="eyebrow">OneDrive safety backup</p><h3>History auto backup</h3><p id="backupStatus">Backup folder connect nahi hai.</p></div>
+          <div class="button-row"><button id="connectCloudBackup" class="primary" type="button">Connect OneDrive cloud</button><button id="connectBackupFolder" class="secondary" type="button">Local folder select karein</button><button id="backupNowBtn" class="secondary" type="button">Backup now</button></div>
+        </article>
         <div class="panel filters">
           <label><span>From</span><input id="filterFrom" type="date"></label>
           <label><span>To</span><input id="filterTo" type="date"></label>
-          <label><span>Payment</span><select id="filterPayment"><option value="">All</option><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Partial">Partial</option></select></label>
           <label><span>Item</span><input id="filterItem" list="itemOptions" placeholder="All items"></label>
+          <label data-admin-only><span>Minimum amount</span><input id="filterAmountMin" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Rs 0"></label>
+          <label data-admin-only><span>Maximum amount</span><input id="filterAmountMax" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Koi limit nahi"></label>
           <button id="showHistoryBtn" class="primary" type="button">Show History</button>
         </div>
         <div id="historySummary" class="summary-strip"></div>
         <div id="historyTable" class="table-wrap panel"></div>
+        <article class="panel trash-panel" data-admin-only><div class="panel-head"><div><p class="eyebrow">30-day safety</p><h3>Trash</h3></div><span id="trashCount">0 records</span></div><div id="trashList" class="record-list"></div></article>
       </section>
 
-      <section id="analyticsView" class="view hidden">
+      <section id="khataView" class="view hidden">
+        <div class="page-heading">
+          <div><p class="eyebrow">Personal money record</p><h2>Udhar Khata</h2><p class="khata-intro">Aap se liye hue aur wapas kiye hue paison ka saaf record.</p></div>
+      </div>
+        <section class="khata-summary" aria-label="Khata summary">
+          <article><span>Aap se liye</span><strong id="personalKhataBorrowed">Rs 0</strong><small>Udhar diya hua</small></article>
+          <article><span>Wapas kiye</span><strong id="personalKhataReturned">Rs 0</strong><small>Wasool hua</small></article>
+          <article class="khata-balance-card"><span id="personalKhataOutstandingLabel">Aap ko wapas lena hai</span><strong id="personalKhataOutstanding">Rs 0</strong><small>Current balance</small></article>
+        </section>
+
+        <article class="panel personal-khata-form-card" data-admin-only>
+          <div class="panel-head"><div><p class="eyebrow">Admin control</p><h3>Nayi udhar entry</h3></div><span class="khata-admin-tag">Admin only</span></div>
+          <form id="personalKhataForm" class="personal-khata-form">
+            <input id="personalKhataId" type="hidden">
+            <label><span>Naam / jis ne paisay liye</span><input id="personalKhataPerson" maxlength="100" autocomplete="name" placeholder="Example: Ali" required></label>
+            <label><span>Amount</span><input id="personalKhataAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Rs 0" required></label>
+            <label><span>Type</span><select id="personalKhataType"><option value="borrowed">Aap se liye</option><option value="returned">Wapas kiye</option></select></label>
+            <label><span>Date & time</span><input id="personalKhataDateTime" type="datetime-local" required></label>
+            <label class="khata-note"><span>Note</span><input id="personalKhataNote" maxlength="240" placeholder="Optional detail"></label>
+            <div class="form-actions"><button id="personalKhataSaveBtn" class="primary" type="submit">Khata mein add karein</button><button id="cancelPersonalKhataEdit" class="secondary hidden" type="button">Cancel edit</button></div>
+          </form>
+        </article>
+
+        <article class="panel personal-khata-history">
+          <div class="panel-head"><div><p class="eyebrow">Live record</p><h3>Khata history</h3></div><div class="khata-filters" role="group" aria-label="Khata filter"><button type="button" class="active" data-personal-khata-filter="all">Sab</button><button type="button" data-personal-khata-filter="borrowed">Liye</button><button type="button" data-personal-khata-filter="returned">Wapas</button></div></div>
+          <div id="personalKhataList" class="personal-khata-list"></div>
+        </article>
+      </section>
+
+      <section id="analyticsView" class="view hidden" data-admin-only>
         <div class="page-heading"><div><p class="eyebrow">Insights</p><h2>Kharchay ka tajzia</h2></div></div>
         <div class="panel filters compact">
           <label><span>From</span><input id="analyticsFrom" type="date"></label>
@@ -166,6 +239,12 @@
           <article class="panel"><h3>Sab se zyada baar khareedi gayi items</h3><div id="frequencyChart" class="bar-chart"></div></article>
           <article class="panel"><h3>Sab se zyada paisay wali items</h3><div id="spendingChart" class="bar-chart spending"></div></article>
         </div>
+      </section>
+
+      <section id="activityView" class="view hidden" data-admin-only>
+        <div class="page-heading"><div><p class="eyebrow">Admin audit</p><h2>User activity history</h2></div></div>
+        <div id="activitySummary" class="summary-strip"></div>
+        <div id="activityTable" class="table-wrap panel"></div>
       </section>
 
       <section id="itemsView" class="view hidden">
@@ -179,15 +258,32 @@
     </section>
 
     <nav class="bottom-nav" aria-label="Mobile navigation">
-      <button class="nav-button active" data-view="dashboard"><span>⌂</span>Home</button>
+      <button class="nav-button active" data-view="dashboard" data-admin-only><span>⌂</span>Home</button>
       <button class="nav-button" data-view="entry"><span>＋</span>Add</button>
       <button class="nav-button" data-view="history"><span>▤</span>History</button>
-      <button class="nav-button" data-view="analytics"><span>▥</span>Insights</button>
+      <button class="nav-button" data-view="khata"><span>₨</span>Khata</button>
+      <button class="nav-button" data-view="analytics" data-admin-only><span>▥</span>Insights</button>
+      <button class="nav-button" data-view="activity" data-admin-only><span>◷</span>Activity</button>
       <button class="nav-button" data-view="items"><span>⌄</span>Items</button>
     </nav>
   </div>
 
-  <script src="config.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <div id="profileModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <form id="profileForm" class="profile-modal">
+      <div class="profile-avatar" id="profileModalInitial">?</div>
+      <p class="eyebrow">Is device ki profile</p>
+      <h2 id="profileTitle">Aap ka naam</h2>
+      <p>Sirf naam likhein. Har saman ke record ke sath pata chalega ke entry kis ne ki.</p>
+      <label><span>Naam</span><input id="deviceProfileName" maxlength="60" autocomplete="name" placeholder="Example: Maqsood" required></label>
+      <div class="form-actions">
+        <button class="primary" type="submit">Naam save karein</button>
+        <button id="cancelProfileBtn" class="secondary" type="button">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="mode.js?v=21"></script>
+  <script src="config.js?v=8"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>

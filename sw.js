@@ -1,5 +1,6 @@
-const CACHE = "maqsood-karyana-v3";
-const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./config.js", "./manifest.webmanifest", "./app-icon-192.png", "./app-icon-512.png"];
+const CACHE = "maqsood-karyana-v21";
+const IMAGE_ASSETS = ["aata","chawal","cheeni","daal-chana","daal-masoor","daal-moong","daal-mash","daal-arhar","besan","suji","maida","namak","laal-mirch","kali-mirch","haldi","dhania-powder","zeera","garam-masala","cooking-oil","ghee","chai-patti","doodh","dahi","anday","bread","biscuit","pyaaz","aloo","tamatar","lehsan","adrak","lemon","chicken","beef","fish","soap"].map((name) => `./item-images/${name}.jpg`);
+const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./mode.js", "./config.js", "./manifest.webmanifest", "./app-icon-192.png", "./app-icon-512.png", "./grocery-quick-items-v12.jpg", "./grocery-core-items-v12.png", "./grocery-household-items-v13.png", ...IMAGE_ASSETS];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
